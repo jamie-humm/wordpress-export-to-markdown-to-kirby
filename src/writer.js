@@ -73,29 +73,29 @@ async function writeMarkdownFilesPromise(posts, config) {
 }
 
 async function loadMarkdownFilePromise(post) {
-	let output = '---\n';
+	let output = '';
 
 	Object.entries(post.frontmatter).forEach(([key, value]) => {
 		let outputValue;
 		if (Array.isArray(value)) {
 			if (value.length > 0) {
 				// array of one or more strings
-				outputValue = value.reduce((list, item) => `${list}\n  - "${item}"`, '');
+				outputValue = value.reduce((list, item) => `${list}\n  - ${item}`, '');
 			}
 		} else {
 			// single string value
 			const escapedValue = (value || '').replace(/"/g, '\\"');
 			if (escapedValue.length > 0) {
-				outputValue = `"${escapedValue}"`;
+				outputValue = `${escapedValue}`;
 			}
 		}
 
 		if (outputValue !== undefined) {
-			output += `${key}: ${outputValue}\n`;
+			output += `${key}: ${outputValue}\n----\n`;
 		}
 	});
 
-	output += `---\n\n${post.content}\n`;
+	output += `----\n\nText: ${post.content}\n`;
 	return output;
 }
 
@@ -105,7 +105,7 @@ async function writeImageFilesPromise(posts, config) {
 	let delay = 0;
 	const payloads = posts.flatMap(post => {
 		const postPath = getPostPath(post, config);
-		const imagesDir = path.join(path.dirname(postPath), 'images');
+		const imagesDir = path.dirname(postPath);
 		return post.meta.imageUrls.flatMap(imageUrl => {
 			const filename = shared.getFilenameFromUrl(imageUrl);
 			const destinationPath = path.join(imagesDir, filename);
@@ -186,14 +186,14 @@ function getPostPath(post, config) {
 	// create slug fragment, possibly date prefixed
 	let slugFragment = post.meta.slug;
 	if (config.prefixDate) {
-		slugFragment = dt.toFormat('yyyy-LL-dd') + '-' + slugFragment;
+		slugFragment = dt.toFormat('yyyyLLdd') + '_' + slugFragment;
 	}
 
 	// use slug fragment as folder or filename as specified
 	if (config.postFolders) {
-		pathSegments.push(slugFragment, 'index.md');
+		pathSegments.push(slugFragment, 'post.en.txt');
 	} else {
-		pathSegments.push(slugFragment + '.md');
+		pathSegments.push(slugFragment + '.txt');
 	}
 
 	return path.join(...pathSegments);
